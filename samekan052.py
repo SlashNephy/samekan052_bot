@@ -1,9 +1,11 @@
-import json
+import os
 import requests
 import discord
 
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
+
+TOKEN = os.getenv("TOKEN")
 
 bot = commands.Bot(command_prefix='s!', intents=discord.Intents.all())
 slash = SlashCommand(bot, auto_register=True)
@@ -20,4 +22,4 @@ async def _samekan(ctx: SlashContext):
     samekanized = r.json()['sentence']
     await ctx.send(content=samekanized)
 
-bot.run('')
+bot.run(TOKEN)
