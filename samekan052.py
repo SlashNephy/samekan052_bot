@@ -46,8 +46,8 @@ async def on_samekan_command(ctx: SlashContext):
         ),
         create_button(
             custom_id="finalize",
-            style=ButtonStyle.danger,
-            emoji="<:samekan_sick:708317022093574155>",
+            style=ButtonStyle.secondary,
+            emoji="\U00002705",
             label="完成"
         )
     )
