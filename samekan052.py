@@ -1,13 +1,12 @@
 import json
 import os
 import urllib.request
-from asyncio import TimeoutError
 
 import discord
 from discord.ext import commands
-from discord_slash import SlashCommand, SlashContext
+from discord_slash import ComponentContext, SlashCommand, SlashContext
 from discord_slash.model import ButtonStyle
-from discord_slash.utils.manage_components import create_actionrow, create_button, wait_for_component
+from discord_slash.utils.manage_components import create_actionrow, create_button
 
 TOKEN = os.getenv("TOKEN")
 
@@ -40,9 +39,16 @@ async def on_ready():
 async def on_samekan_command(ctx: SlashContext):
     action_row = create_actionrow(
         create_button(
+            custom_id="redo",
             style=ButtonStyle.primary,
             emoji="\U0001F504",
             label="やりなおし"
+        ),
+        create_button(
+            custom_id="finalize",
+            style=ButtonStyle.danger,
+            emoji="<:samekan_sick:708317022093574155>",
+            label="完成"
         )
     )
 
@@ -51,8 +57,12 @@ async def on_samekan_command(ctx: SlashContext):
         components=[action_row]
     )
 
-    while True:
-        button_ctx = await wait_for_component(bot, components=action_row)
-        await button_ctx.edit_origin(content=get_random_sentence())
+@slash.component_callback()
+async def redo(ctx: ComponentContext):
+    await ctx.edit_origin(content=get_random_sentence())
+
+@slash.component_callback()
+async def finalize(ctx: ComponentContext):
+    await ctx.edit_origin(components=[])
 
 bot.run(TOKEN)
