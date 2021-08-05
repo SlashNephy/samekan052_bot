@@ -13,19 +13,25 @@ TOKEN = os.getenv("TOKEN")
 bot = commands.Bot(command_prefix="s!", intents=discord.Intents.all())
 slash = SlashCommand(bot, sync_commands=True)
 
-def get_api():
+def get_api(url):
     headers = {
         "User-Agent": "samekan052_bot (+https://github.com/SlashNephy/samekan052_bot)",
         "Content-Type": "application/json"
     }
-    request = urllib.request.Request("https://samekan052.vercel.app/api", headers=headers)
+    request = urllib.request.Request(f"{url}/api", headers=headers)
 
     with urllib.request.urlopen(request) as response:
         content = response.read().decode()
         return json.loads(content)
 
-def get_random_sentence():
-    api = get_api()
+def get_random_sentence(target):
+    if target == "samekan":
+        api = get_api("https://samekan.starry.blue")
+    elif target == "kashiwa":
+        api = get_api("https://kashiwa.starry.blue")
+    elif target == "karasu":
+        api = get_api("https://karasu.starry.blue")
+
     return api["sentence"]
 
 @bot.event
@@ -35,8 +41,7 @@ async def on_ready():
     activity = discord.Game(name="Apex Legends")
     await bot.change_presence(activity=activity)
 
-@slash.slash(name="samekan", description="さめちゃんを呼び寄せます。")
-async def on_samekan_command(ctx: SlashContext):
+async def respond(ctx, target):
     action_row = create_actionrow(
         create_button(
             custom_id="redo",
@@ -53,9 +58,21 @@ async def on_samekan_command(ctx: SlashContext):
     )
 
     await ctx.send(
-        content=get_random_sentence(),
+        content=get_random_sentence(target),
         components=[action_row]
     )
+
+@slash.slash(name="samekan", description="さめちゃんを呼び寄せます。")
+async def on_samekan_command(ctx: SlashContext):
+    await respond(ctx, "samekan")
+
+@slash.slash(name="kashiwa", description="かしわさんを呼び寄せます。")
+async def on_kashiwa_command(ctx: SlashContext):
+    await respond(ctx, "kashiwa")
+
+@slash.slash(name="karasu", description="ばからす様を呼び寄せます。")
+async def on_karasu_command(ctx: SlashContext):
+    await respond(ctx, "karasu")
 
 @slash.component_callback()
 async def redo(ctx: ComponentContext):
