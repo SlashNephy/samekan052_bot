@@ -34,6 +34,14 @@ def get_random_sentence(target):
 
     return api["sentence"]
 
+def get_nick(target):
+    if target == "samekan":
+        return "さめちゃん"
+    elif target == "kashiwa":
+        return "かしわさん"
+    elif target == "karasu":
+        return "ばからす様"
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}!")
@@ -42,15 +50,17 @@ async def on_ready():
     await bot.change_presence(activity=activity)
 
 async def respond(ctx, target):
+    ctx.me.edit(nick=get_nick(target))
+
     action_row = create_actionrow(
         create_button(
-            custom_id="redo",
+            custom_id=f"redo_{target}",
             style=ButtonStyle.primary,
             emoji="\U0001F504",
             label="やりなおし"
         ),
         create_button(
-            custom_id="finalize",
+            custom_id=f"finalize_{target}",
             style=ButtonStyle.secondary,
             emoji="\U00002705",
             label="完成"
@@ -76,7 +86,7 @@ async def on_karasu_command(ctx: SlashContext):
 
 @slash.component_callback()
 async def redo(ctx: ComponentContext):
-    await ctx.edit_origin(content=get_random_sentence())
+    await ctx.edit_origin(content=get_random_sentence(ctx.custom_id.split("_")[-1]))
 
 @slash.component_callback()
 async def finalize(ctx: ComponentContext):
