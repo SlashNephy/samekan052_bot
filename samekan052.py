@@ -50,7 +50,7 @@ async def on_ready():
     await bot.change_presence(activity=activity)
 
 async def respond(ctx, target):
-    ctx.me.edit(nick=get_nick(target))
+    await ctx.me.edit(nick=get_nick(target))
 
     action_row = create_actionrow(
         create_button(
