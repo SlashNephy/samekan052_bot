@@ -85,11 +85,27 @@ async def on_karasu_command(ctx: SlashContext):
     await respond(ctx, "karasu")
 
 @slash.component_callback()
-async def redo(ctx: ComponentContext):
-    await ctx.edit_origin(content=get_random_sentence(ctx.custom_id.split("_")[-1]))
+async def redo_samekan(ctx: ComponentContext):
+    await ctx.edit_origin(content=get_random_sentence("samekan"))
 
 @slash.component_callback()
-async def finalize(ctx: ComponentContext):
+async def redo_kashiwa(ctx: ComponentContext):
+    await ctx.edit_origin(content=get_random_sentence("kashiwa"))
+
+@slash.component_callback()
+async def redo_karasu(ctx: ComponentContext):
+    await ctx.edit_origin(content=get_random_sentence("karasu"))
+
+@slash.component_callback()
+async def finalize_samekan(ctx: ComponentContext):
+    await ctx.edit_origin(components=[])
+
+@slash.component_callback()
+async def finalize_kashiwa(ctx: ComponentContext):
+    await ctx.edit_origin(components=[])
+
+@slash.component_callback()
+async def finalize_karasu(ctx: ComponentContext):
     await ctx.edit_origin(components=[])
 
 bot.run(TOKEN)
