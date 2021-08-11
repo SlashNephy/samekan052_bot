@@ -9,58 +9,49 @@ from discord_slash.model import ButtonStyle
 from discord_slash.utils.manage_components import create_actionrow, create_button
 
 TOKEN = os.getenv("TOKEN")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://samekan.starry.blue")
+COMMAND = os.getenv("COMMAND", "samekan")
+DESCRIPTION = os.getenv("DESCRIPTION")
+GAME = os.getenv("GAME", "Apex Legends")
+
 
 bot = commands.Bot(command_prefix="s!", intents=discord.Intents.all())
 slash = SlashCommand(bot, sync_commands=True)
 
-def get_api(url):
+def get_api():
     headers = {
         "User-Agent": "samekan052_bot (+https://github.com/SlashNephy/samekan052_bot)",
         "Content-Type": "application/json"
     }
-    request = urllib.request.Request(f"{url}/api", headers=headers)
+    request = urllib.request.Request(f"{API_BASE_URL}/api", headers=headers)
 
     with urllib.request.urlopen(request) as response:
         content = response.read().decode()
         return json.loads(content)
 
-def get_random_sentence(target):
-    if target == "samekan":
-        api = get_api("https://samekan.starry.blue")
-    elif target == "kashiwa":
-        api = get_api("https://kashiwa.starry.blue")
-    elif target == "karasu":
-        api = get_api("https://karasu.starry.blue")
+def get_random_sentence():
+    api = get_api()
 
     return api["sentence"]
-
-def get_nick(target):
-    if target == "samekan":
-        return "さめちゃん"
-    elif target == "kashiwa":
-        return "かしわさん"
-    elif target == "karasu":
-        return "ばからす様"
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}!")
 
-    activity = discord.Game(name="Apex Legends")
+    activity = discord.Game(name=GAME)
     await bot.change_presence(activity=activity)
 
-async def respond(ctx, target):
-    await ctx.me.edit(nick=get_nick(target))
-
+@slash.slash(name=COMMAND, description=DESCRIPTION)
+async def on_command(ctx: SlashContext):
     action_row = create_actionrow(
         create_button(
-            custom_id=f"redo_{target}",
+            custom_id="on_redo",
             style=ButtonStyle.primary,
             emoji="\U0001F504",
             label="やりなおし"
         ),
         create_button(
-            custom_id=f"finalize_{target}",
+            custom_id="on_finalize",
             style=ButtonStyle.secondary,
             emoji="\U00002705",
             label="完成"
@@ -68,44 +59,16 @@ async def respond(ctx, target):
     )
 
     await ctx.send(
-        content=get_random_sentence(target),
+        content=get_random_sentence(),
         components=[action_row]
     )
 
-@slash.slash(name="samekan", description="さめちゃんを呼び寄せます。")
-async def on_samekan_command(ctx: SlashContext):
-    await respond(ctx, "samekan")
-
-@slash.slash(name="kashiwa", description="かしわさんを呼び寄せます。")
-async def on_kashiwa_command(ctx: SlashContext):
-    await respond(ctx, "kashiwa")
-
-@slash.slash(name="karasu", description="ばからす様を呼び寄せます。")
-async def on_karasu_command(ctx: SlashContext):
-    await respond(ctx, "karasu")
+@slash.component_callback()
+async def on_redo(ctx: ComponentContext):
+    await ctx.edit_origin(content=get_random_sentence())
 
 @slash.component_callback()
-async def redo_samekan(ctx: ComponentContext):
-    await ctx.edit_origin(content=get_random_sentence("samekan"))
-
-@slash.component_callback()
-async def redo_kashiwa(ctx: ComponentContext):
-    await ctx.edit_origin(content=get_random_sentence("kashiwa"))
-
-@slash.component_callback()
-async def redo_karasu(ctx: ComponentContext):
-    await ctx.edit_origin(content=get_random_sentence("karasu"))
-
-@slash.component_callback()
-async def finalize_samekan(ctx: ComponentContext):
-    await ctx.edit_origin(components=[])
-
-@slash.component_callback()
-async def finalize_kashiwa(ctx: ComponentContext):
-    await ctx.edit_origin(components=[])
-
-@slash.component_callback()
-async def finalize_karasu(ctx: ComponentContext):
+async def on_finalize(ctx: ComponentContext):
     await ctx.edit_origin(components=[])
 
 bot.run(TOKEN)
