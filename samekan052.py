@@ -2,23 +2,32 @@ import json
 import os
 import urllib.request
 
-import discord
-from discord.ext import commands
-from discord_slash import ComponentContext, SlashCommand, SlashContext
-from discord_slash.model import ButtonStyle
-from discord_slash.utils.manage_components import create_actionrow, create_button
+import interactions
+
 
 TOKEN = os.getenv("TOKEN")
-API_BASE_URL = os.getenv("API_BASE_URL", "https://samekan.starry.blue")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://samekan052.vercel.app")
 COMMAND = os.getenv("COMMAND", "samekan")
-DESCRIPTION = os.getenv("DESCRIPTION")
-GAME = os.getenv("GAME", "Apex Legends")
+DESCRIPTION = os.getenv("DESCRIPTION", "さめちゃんを呼び寄せます。")
+GAME = os.getenv("GAME")
+
+bot = interactions.Client(token=TOKEN)
+redo_button = interactions.Button(
+    custom_id="on_redo",
+    style=interactions.ButtonStyle.PRIMARY,
+    emoji=interactions.Emoji(name="\U0001F504"),
+    label="やりなおし",
+)
+complete_button = interactions.Button(
+    custom_id="on_finalize",
+    style=interactions.ButtonStyle.SECONDARY,
+    emoji=interactions.Emoji(name="\U00002705"),
+    label="完成",
+)
+action_row = interactions.ActionRow.new(redo_button, complete_button)
 
 
-bot = commands.Bot(command_prefix="s!", intents=discord.Intents.all())
-slash = SlashCommand(bot, sync_commands=True)
-
-def get_api():
+def get_random_sentence():
     headers = {
         "User-Agent": "samekan052_bot (+https://github.com/SlashNephy/samekan052_bot)",
         "Content-Type": "application/json"
@@ -27,48 +36,39 @@ def get_api():
 
     with urllib.request.urlopen(request) as response:
         content = response.read().decode()
-        return json.loads(content)
+        payload = json.loads(content)
+        return payload["sentence"]
 
-def get_random_sentence():
-    api = get_api()
-
-    return api["sentence"]
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}!")
+    print(f"Logged in as {bot.me}!")
 
-    activity = discord.Game(name=GAME)
-    await bot.change_presence(activity=activity)
-
-@slash.slash(name=COMMAND, description=DESCRIPTION)
-async def on_command(ctx: SlashContext):
-    action_row = create_actionrow(
-        create_button(
-            custom_id="on_redo",
-            style=ButtonStyle.primary,
-            emoji="\U0001F504",
-            label="やりなおし"
-        ),
-        create_button(
-            custom_id="on_finalize",
-            style=ButtonStyle.secondary,
-            emoji="\U00002705",
-            label="完成"
+    if GAME:
+        presence = interactions.ClientPresence(
+            activities=[
+                interactions.PresenceActivity(name=GAME),
+            ],
         )
-    )
+        await bot.change_presence(presence)
 
+
+@bot.command(name=COMMAND, description=DESCRIPTION)
+async def on_command(ctx: interactions.CommandContext):
     await ctx.send(
         content=get_random_sentence(),
-        components=[action_row]
+        components=action_row,
     )
 
-@slash.component_callback()
-async def on_redo(ctx: ComponentContext):
-    await ctx.edit_origin(content=get_random_sentence())
 
-@slash.component_callback()
-async def on_finalize(ctx: ComponentContext):
-    await ctx.edit_origin(components=[])
+@bot.component(redo_button)
+async def on_redo(ctx: interactions.ComponentContext):
+    await ctx.edit(content=get_random_sentence())
 
-bot.run(TOKEN)
+
+@bot.component(complete_button)
+async def on_complete(ctx: interactions.ComponentContext):
+    await ctx.edit(components=[])
+
+
+bot.start()

@@ -14,7 +14,7 @@ version: '3.8'
 services:
   samekan052_bot:
     container_name: samekan052_bot
-    image: ghcr.io/slashnephy/samekan052_bot
+    image: ghcr.io/slashnephy/samekan052_bot:master
     restart: always
     environment:
       TOKEN: YOUR_DISCORD_BOT_TOKEN

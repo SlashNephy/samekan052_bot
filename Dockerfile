@@ -1,12 +1,25 @@
-FROM python:alpine
+FROM python:3.11.1-slim-bullseye
+
+ARG BUILD_DEPENDENCIES="build-essential"
 
 COPY ./requirements.txt /tmp/requirements.txt
-RUN apk add --update --no-cache --virtual .build-deps \
-        build-base \
-        linux-headers \
+
+RUN apt update \
+    && apt install -y --no-install-recommends $BUILD_DEPENDENCIES \
     && pip install --no-cache-dir -r /tmp/requirements.txt \
+    \
+    # pip
+    && cd /tmp \
+    && python -m pip install --upgrade pip \
+    && pip install --no-cache-dir \
+        -r /tmp/requirements.txt \
     && rm /tmp/requirements.txt \
-    && apk del --purge .build-deps
+    \
+    ## Cleanup
+    && apt purge -y $BUILD_DEPENDENCIES \
+    && apt autoremove -y \
+    && apt clean -y \
+    && rm -rf /var/lib/apt/lists
 
 WORKDIR /
 COPY ./samekan052.py /app.py
