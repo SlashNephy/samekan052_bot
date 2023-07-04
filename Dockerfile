@@ -1,4 +1,4 @@
-FROM python:3.11.4-slim-bullseye@sha256:87a1f4d072ca88161bcd57878d912cae21eb718d9608859f57654ca05ab58545
+FROM python:3.11.4-slim-bullseye@sha256:933083cddf041acec1be03ddd1c2e7abb5ce0b2b5fbc0e06c8b29be5f21b2c96
 
 ARG BUILD_DEPENDENCIES="build-essential"
 
